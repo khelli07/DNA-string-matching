@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	sm "tubes03/string_matcher"
+	sm "github.com/DNA-string-matching/string_matcher"
 )
 
 func printResult(method string, index int) {
