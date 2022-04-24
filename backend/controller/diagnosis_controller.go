@@ -99,9 +99,8 @@ func NewDiagnosisHandler(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": res.Error})
 		} else {
 			c.JSON(http.StatusOK, gin.H{
-				"new_id":  diagnose.ID,
-				"message": "Model created successfully",
-			})
+				"id":      diagnose.ID,
+				"message": "Model created successfully"})
 		}
 	}
 
