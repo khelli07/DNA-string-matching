@@ -8,6 +8,7 @@ import (
 	mod "github.com/DNA-string-matching/backend/model"
 
 	"github.com/gin-gonic/gin"
+	cors "github.com/rs/cors/wrapper/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -32,6 +33,7 @@ func main() {
 	db.AutoMigrate(&mod.Diagnosis{})
 
 	router := gin.Default()
+	router.Use(cors.Default())
 	router.GET("/", rootHandler)
 
 	penyakit := router.Group("/penyakit")
