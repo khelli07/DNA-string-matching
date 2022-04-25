@@ -1,15 +1,21 @@
 import React from "react";
-import { useState } from 'react'
+import { useState } from 'react';
+import axios from "axios";
+import { BACKEND_URL } from "../../constant";
 
 const TesDNAComponent = () => {
     const [namaPenyakit, setNamaPenyakit] = useState("");
     const [namaPengguna, setNamaPengguna] = useState("");
     const [submitPenyakit, setSubmitPenyakit] = useState(false);
-    const [dataPenyakitPengguna, setDataPenyakitPengguna] = useState([]);
+    const [dataPenyakitPengguna, setDataPenyakitPengguna] = useState([{date: "a", name: "a", disease: "a", result: "a", percentage: "a"}]);
+    const [dataId, setDataId] = useState(-1);
+
+    const [hasilRead, setHasilRead] = useState("");
     const [file, setFile] = useState("");
 
-    const cariDataPenyakitPengguna = () => {
+    const cariDataPenyakitPengguna = async (e) => {
             // Check if document is finally loaded
+            e.preventDefault()
             console.log(namaPengguna)
             console.log(namaPenyakit)
             if(!namaPengguna) {
@@ -34,18 +40,67 @@ const TesDNAComponent = () => {
 
                 var reader = new FileReader();
                 var hasil = "";
-                reader.onload = function(progressEvent){
+                reader.onload = async function(progressEvent){
                   var lines = this.result.split('\n');
                   hasil = lines[0];
-                  console.log(hasil)
+                  try {
+                    const newDataPenyakit = {
+                        name: namaPengguna,   
+                        sequence: hasil,
+                        disease: namaPenyakit,
+                    }
                     
+                    const attempt = await axios({
+                      method: "post",
+                      url: `${BACKEND_URL}/diagnosis/new`,
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      data: newDataPenyakit
+                    }).then(res => {
+                        console.log(res.data.new_id);
+                        setDataId(res.data.new_id);
+                        fetchData(res.data.new_id - 1);
+                        setSubmitPenyakit(true);
+                    });
+
+                  }catch(err) {
+                    alert(err.toString());
+                  };
                 };
                 reader.readAsText(temp);
             }
-            setSubmitPenyakit(true);
-            setDataPenyakitPengguna("10 Maret 2021 - Dia - Halo - Tes")
             return false;
     }
+
+/*     React.useEffect(() => {
+        const getDataUser = async () => {
+          const { data: penyakitData } = await axios.get(`${BACKEND_URL}/${dataId}`, {
+          } )
+          setDataPenyakitPengguna(penyakitData);
+        }
+    }, []); */
+
+    async function fetchData(id) {
+        if(id > -1) {
+            const { data: penyakitData } = await axios.get(
+                `${BACKEND_URL}/diagnosis`,
+            )
+            console.log(penyakitData);
+            let data = Object.values(penyakitData);
+            setDataPenyakitPengguna({
+                date: data[id].date,
+                name: data[id].name,
+                disease: data[id].disease,
+                result: data[id].result,
+                percentage: data[id].percentage,
+            });
+        }
+      }
+
+    React.useEffect(() => {
+        fetchData(dataId);
+    }, []);
 
     return(
 <       div
@@ -73,7 +128,7 @@ const TesDNAComponent = () => {
                 </form>
                 <h3 class="mb-3" hidden={!submitPenyakit} style={{marginTop: "4vh"}}>Hasil: </h3>
                 <hr hidden={!submitPenyakit} style={{backgroundColor: 'white'}}></hr>
-                <p hidden={!submitPenyakit}>{dataPenyakitPengguna}</p>
+                {dataId !== -1? <p hidden={!submitPenyakit}>{dataPenyakitPengguna.date} - {dataPenyakitPengguna.name} - {dataPenyakitPengguna.disease} - {dataPenyakitPengguna.result? "True" : "False"} - {dataPenyakitPengguna.percentage}</p> : <p></p>}
             </div>
             </div>
         </div>
