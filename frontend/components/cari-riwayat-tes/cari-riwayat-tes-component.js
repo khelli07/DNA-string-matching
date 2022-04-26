@@ -1,22 +1,38 @@
 import React from "react";
-import { useState } from 'react'
+import { useState } from 'react';
+import { BACKEND_URL } from "../../constant";
+import axios from "axios";
 
 const CariRiwayatTesComponent = () => {
     const [inputPengguna, setInputPengguna] = useState("");
+    const [count, setCount] = useState(0);
     const [submitPenyakit, setSubmitPenyakit] = useState(false);
     const [dataPenyakitPengguna, setDataPenyakitPengguna] = useState([]);
 
-    const cariDataPenyakit = () => {
+    const cariDataPenyakit = async (e) => {
             // Check if document is finally loaded
+            e.preventDefault();
             if(!inputPengguna) {
                 alert("Anda belum memasukkan apapun!");
                 return false;
             }
             console.log(inputPengguna)
             setSubmitPenyakit(true);
-            setDataPenyakitPengguna(["10 Maret 2021 - Dia - Halo - Tes", "11 Maret 2021 - Dia - Halo - Tes", "12 Maret 2021 - Dia - Halo - Tes"])
+            fetchData();
             return false;
     }
+
+    async function fetchData() {
+        const { data: penyakitData } = await axios.get(
+            `${BACKEND_URL}/diagnosis/?query=${inputPengguna}`,
+        )
+        setDataPenyakitPengguna(penyakitData);
+        console.log(dataPenyakitPengguna);
+      }
+
+    React.useEffect(() => {
+        fetchData();
+    }, []);
 
     return(
 <       div
@@ -36,7 +52,7 @@ const CariRiwayatTesComponent = () => {
                 </form>
                 <h3 class="mb-3" hidden={!submitPenyakit} style={{marginTop: "4vh"}}>Hasil: </h3>
                 <hr hidden={!submitPenyakit} style={{backgroundColor: 'white'}}></hr>
-                {dataPenyakitPengguna.map((data) => {
+                {dataPenyakitPengguna.length > 0 && dataPenyakitPengguna.map((data) => {
                     return(
                         <div>
                             <p hidden={!submitPenyakit}>{data}</p>

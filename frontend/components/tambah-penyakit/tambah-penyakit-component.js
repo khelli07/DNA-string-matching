@@ -1,12 +1,16 @@
 import React from "react";
+import axios from "axios";
+import { BACKEND_URL } from "../../constant";
 import { useState } from 'react'
 
 const TambahPenyakitComponent = () => {
     const [nama, setNama] = useState("");
     const [file, setFile] = useState("");
+    const [hasilRead, setHasilRead] = useState("");
 
-    const tambahPenyakit = () => {
+    const tambahPenyakit = async (e) => {
             // Check if document is finally loaded
+            e.preventDefault()
             console.log(nama)
             if(!nama) {
                 alert("Anda belum memasukkan nama penyakit!");
@@ -26,10 +30,40 @@ const TambahPenyakitComponent = () => {
 
                 var reader = new FileReader();
                 var hasil = "";
-                reader.onload = function(progressEvent){
+                reader.onload = async function(progressEvent){
                   var lines = this.result.split('\n');
                   hasil = lines[0];
-                  console.log(hasil)
+                  setHasilRead(hasil);
+                  console.log(hasil);
+                  try {
+                    const newDataPenyakit = {
+                      name: nama,
+                      pattern: hasil,
+                    }
+                    console.log(newDataPenyakit);
+                    alert("Penyakit berhasil ditambahkan!");
+                    axios.post(`http://127.0.0.1:8080/penyakit/new`, {
+                        name: nama,
+                        pattern: hasil,
+                      })
+                      .then((response) => {
+                        console.log(response);
+                        alert("Penyakit berhasil ditambahkan!");
+                      }, (error) => {
+                        console.log(error);
+                      });
+                      alert("Penyakit berhasil ditambahkan!");
+/*                     const attempt = await axios({
+                      method: "post",
+                      url: `${BACKEND_URL}/penyakit/new`,
+                      headers: {
+                        "Content-Type": "application/json; charset=utf-8",
+                      },
+                      data: newDataPenyakit
+                    }); */
+                  }catch(err) {
+                    alert(err.toString());
+                  };
                 };
                 reader.readAsText(temp);
             }
