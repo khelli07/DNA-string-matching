@@ -19,16 +19,7 @@ func AllDiagnosisHandler(c *gin.Context) {
 		return
 	}
 
-	query := fmt.Sprint(c.Query("query"))
-	date, name := ExtractQuery(query)
-
 	res := db.Find(&diagnoses)
-	if date != "" || name != "" {
-		name_pattern := "%" + name + "%"
-		res = db.Where("input_date = ? OR disease_name = ? OR name like ?",
-			date, name, name_pattern).Find(&diagnoses)
-	}
-
 	if res.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Penyakit tidak ditemukan!"})
 	} else {
@@ -46,6 +37,53 @@ func AllDiagnosisHandler(c *gin.Context) {
 			response[fmt.Sprint(diagnose.ID)] = body
 		}
 		c.JSON(http.StatusOK, response)
+	}
+}
+
+func SearchDiagnosisHandler(c *gin.Context) {
+	type Query struct {
+		Query string `json:"query"`
+	}
+	var query Query
+	var diagnoses []mod.Diagnosis
+	db := ConnectToDB()
+
+	if db == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "An error occured! Can't connect to DB"})
+		return
+	}
+
+	err := c.ShouldBindJSON(&query)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprint(err)})
+	} else {
+		date, name := ExtractQuery(query.Query)
+
+		res := db.Find(&diagnoses)
+		if date != "" || name != "" {
+			name_pattern := "%" + name + "%"
+			res = db.Where("input_date = ? OR disease_name = ? OR name like ?",
+				date, name, name_pattern).Find(&diagnoses)
+		}
+
+		if res.Error != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprint(res.Error)})
+		} else {
+			response := gin.H{}
+			for _, diagnose := range diagnoses {
+				body := gin.H{
+					"date":       diagnose.InputDate,
+					"name":       diagnose.Name,
+					"sequence":   diagnose.DNASequence,
+					"disease":    diagnose.DiseaseName,
+					"percentage": diagnose.Percentage,
+					"result":     diagnose.Result,
+				}
+
+				response[fmt.Sprint(diagnose.ID)] = body
+			}
+			c.JSON(http.StatusOK, response)
+		}
 	}
 }
 

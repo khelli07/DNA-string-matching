@@ -49,6 +49,7 @@ func main() {
 	{
 		diagnosis.GET("", ctrl.AllDiagnosisHandler)
 		diagnosis.GET("/:id", ctrl.ReadDiagnosisHandler)
+		diagnosis.POST("/search", ctrl.SearchDiagnosisHandler)
 		diagnosis.POST("/new", ctrl.NewDiagnosisHandler)
 		diagnosis.DELETE("/:id/delete", ctrl.DeleteDiagnosisHandler)
 	}
