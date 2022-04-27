@@ -1,5 +1,11 @@
 package string_matcher
 
+import (
+	"fmt"
+
+	ss "tubes03/string_similarity"
+)
+
 func bmMapper(pattern string) map[byte]int {
 	m := make(map[byte]int)
 	visited := make(map[byte]bool)
@@ -26,11 +32,19 @@ func min(a, b int) int {
 	return b
 }
 
-func BMooreMatcher(pattern, text string) int {
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func BMooreMatcher(pattern, text string, c chan string, index *int, similarityDict *map[string]float32) {
 	n := len(text)
 	m := len(pattern)
 	if n < m {
-		return -1
+		*index = -1
+		return
 	}
 
 	mapper := bmMapper(pattern)
@@ -39,17 +53,34 @@ func BMooreMatcher(pattern, text string) int {
 
 	for i < n {
 		if text[i] == pattern[j] {
+
 			if j == 0 {
-				return i
+
+				fmt.Println(text[i : i+m])
+				c <- "Done"
+				*index = i
+				return
 			}
 			i--
 			j--
 		} else {
+
+			//fmt.Println(i)
+			//fmt.Println(text[max(i-m, 0):i])
+
+			currText := text[max(i-m, 0):i]
+
+			if len(currText) == m {
+				(*similarityDict)[currText] = ss.LevenshteinSimilarity(pattern, currText)
+			}
+
 			locc := mapper[text[i]]
 			i = i + m - min(j, 1+locc)
 			j = m - 1
 		}
 	}
 
-	return -1
+	*index = -1
+	c <- "Done"
+	return
 }
