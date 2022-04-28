@@ -23,12 +23,13 @@ func kmpMapper(pattern string) map[int]int {
 	return m
 }
 
-func KMPMatcher(pattern, text string) int {
+func KMPMatcher(pattern, text string, c chan int, index *int) {
 	m := len(pattern)
 	n := len(text)
 
 	if n < m {
-		return -1
+		*index = -1
+		return
 	}
 
 	j := 0
@@ -50,5 +51,7 @@ func KMPMatcher(pattern, text string) int {
 		}
 	}
 
-	return idx
+	*index = idx
+	c <- 3
+	return
 }

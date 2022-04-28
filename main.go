@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sm "github.com/DNA-string-matching/string_matcher"
+	ss "github.com/DNA-string-matching/string_similarity"
 )
 
 func printResult(method string, index int) {
@@ -14,14 +15,53 @@ func printResult(method string, index int) {
 	}
 }
 
-func main() {
-	pattern := "AGG"
-	text := "AGCTAGCATGCATCGAGG"
+func DNA_String_Matching(pattern, text string, algoIndex int) (float32, bool) {
 
-	// RESULT ARE IN INDEX
-	printResult("Brute Force", sm.BruteForceMatching(pattern, text))
-	printResult("KMP", sm.KMPMatcher(pattern, text))
-	printResult("Regex", sm.KMPMatcher(pattern, text))
-	printResult("Boyer-Moore", sm.BMooreMatcher(pattern, text))
+	similarityDict := make(map[string]float32)
+	var index int
+	var count int = 0
+	var c = make(chan int)
+
+	//pattern := "AGCTGA"
+	//text := "AGCTAGCATAAGCTAGCTA"
+	//algoIndex := 2
+
+	/* Memilih Algoritma */
+	switch algoIndex {
+	case 0:
+		go sm.BMooreMatcher(pattern, text, c, &index)
+	case 1:
+		go sm.KMPMatcher(pattern, text, c, &index)
+	case 2:
+		go sm.BruteForceMatching(pattern, text, c, &index)
+	case 3:
+		go sm.RegexMatch(pattern, text, c, &index)
+	}
+	go ss.SmithWatermanSimilarity(pattern, text, c, &similarityDict)
+
+	/* Channel Message Receiver */
+	for {
+		msg := <-c
+		if msg != -1 {
+			count++
+		}
+
+		if count == 2 {
+			// Total 2 Proses
+			// Mencari index dan similarity
+			break
+		}
+	}
+
+	/* Check if is Positive */
+	isPositive := false
+	similarity := ss.FindMaxSimilarity(similarityDict)
+
+	if index != -1 || similarity > 80 {
+		isPositive = true
+	}
+
+	/* Return */
+	return similarity, isPositive
 
 }

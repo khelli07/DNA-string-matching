@@ -26,11 +26,14 @@ func min(a, b int) int {
 	return b
 }
 
-func BMooreMatcher(pattern, text string) int {
+func BMooreMatcher(pattern, text string, c chan int, index *int) {
 	n := len(text)
 	m := len(pattern)
+
 	if n < m {
-		return -1
+		*index = -1
+		c <- 1
+		return
 	}
 
 	mapper := bmMapper(pattern)
@@ -40,7 +43,9 @@ func BMooreMatcher(pattern, text string) int {
 	for i < n {
 		if text[i] == pattern[j] {
 			if j == 0 {
-				return i
+				*index = i
+				c <- 1
+				return
 			}
 			i--
 			j--
@@ -51,5 +56,9 @@ func BMooreMatcher(pattern, text string) int {
 		}
 	}
 
-	return -1
+	*index = -1
+
+	c <- 1
+
+	return
 }

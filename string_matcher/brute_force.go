@@ -1,6 +1,6 @@
 package string_matcher
 
-func BruteForceMatching(pattern, text string) int {
+func BruteForceMatching(pattern, text string, c chan int, index *int) {
 	i, j := 0, 0
 	for i < len(text) && j < len(pattern) {
 		if pattern[j] != text[i] {
@@ -13,8 +13,13 @@ func BruteForceMatching(pattern, text string) int {
 	}
 
 	if j == len(pattern) {
-		return i - j
+		*index = i - j
+		c <- 2
+		return
 	}
 
-	return -1
+	*index = -1
+
+	c <- 2
+	return
 }
