@@ -1,5 +1,10 @@
 package string_matcher
 
+import (
+	"fmt"
+	ss "tubes03/string_similarity"
+)
+
 func kmpMapper(pattern string) map[int]int {
 	m := make(map[int]int)
 	m[0] = 0
@@ -23,12 +28,12 @@ func kmpMapper(pattern string) map[int]int {
 	return m
 }
 
-func KMPMatcher(pattern, text string) int {
+func KMPMatcher(pattern, text string, c chan string, index *int, similarityDict *map[string]float32) {
 	m := len(pattern)
 	n := len(text)
 
 	if n < m {
-		return -1
+		*index = -1
 	}
 
 	j := 0
@@ -36,8 +41,16 @@ func KMPMatcher(pattern, text string) int {
 	idx := -1
 
 	mapper := kmpMapper(pattern)
+	fmt.Println(mapper)
 	for i < n && j < m {
 		if text[i] == pattern[j] {
+			currText := text[max(i-m, 0):i]
+
+			fmt.Println(2, currText)
+
+			if len(currText) == m {
+				(*similarityDict)[currText] = ss.LevenshteinSimilarity(pattern, currText)
+			}
 			if j == m-1 {
 				idx = i - j
 			}
@@ -50,5 +63,6 @@ func KMPMatcher(pattern, text string) int {
 		}
 	}
 
-	return idx
+	*index = idx
+	c <- "Done"
 }

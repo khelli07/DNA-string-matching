@@ -48,6 +48,7 @@ func BMooreMatcher(pattern, text string, c chan string, index *int, similarityDi
 	}
 
 	mapper := bmMapper(pattern)
+
 	i := m - 1
 	j := m - 1
 
@@ -64,11 +65,8 @@ func BMooreMatcher(pattern, text string, c chan string, index *int, similarityDi
 			i--
 			j--
 		} else {
-
-			//fmt.Println(i)
-			//fmt.Println(text[max(i-m, 0):i])
-
-			currText := text[max(i-m, 0):i]
+			currText := text[max(i-m+1, 0) : i+1]
+			fmt.Println(1, currText)
 
 			if len(currText) == m {
 				(*similarityDict)[currText] = ss.LevenshteinSimilarity(pattern, currText)
