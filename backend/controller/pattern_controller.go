@@ -3,6 +3,9 @@ package controller
 import (
 	regex "regexp"
 	"strings"
+
+	sm "github.com/DNA-string-matching/backend/string_matcher"
+	ss "github.com/DNA-string-matching/backend/string_similarity"
 )
 
 func PatternIsValid(pattern string) bool {
@@ -82,4 +85,55 @@ func ExtractQuery(query string) (string, string) {
 	}
 
 	return ret[0], ret[1]
+}
+
+func DNAStringMatching(pattern, text string, algoIndex int) (float32, bool) {
+
+	similarityDict := make(map[string]float32)
+	var index int
+	var count int = 0
+	var c = make(chan int)
+
+	//pattern := "AGCTGA"
+	//text := "AGCTAGCATAAGCTAGCTA"
+	//algoIndex := 2
+
+	/* Memilih Algoritma */
+	switch algoIndex {
+	case 0:
+		go sm.BMooreMatcher(pattern, text, c, &index)
+	case 1:
+		go sm.KMPMatcher(pattern, text, c, &index)
+	case 2:
+		go sm.BruteForceMatching(pattern, text, c, &index)
+	case 3:
+		go sm.RegexMatch(pattern, text, c, &index)
+	}
+	go ss.SmithWatermanSimilarity(pattern, text, c, &similarityDict)
+
+	/* Channel Message Receiver */
+	for {
+		msg := <-c
+		if msg != -1 {
+			count++
+		}
+
+		if count == 2 {
+			// Total 2 Proses
+			// Mencari index dan similarity
+			break
+		}
+	}
+
+	/* Check if is Positive */
+	isPositive := false
+	similarity := ss.FindMaxSimilarity(similarityDict)
+
+	if index != -1 || similarity > 80 {
+		isPositive = true
+	}
+
+	/* Return */
+	return similarity, isPositive
+
 }

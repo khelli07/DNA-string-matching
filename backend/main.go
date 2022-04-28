@@ -19,7 +19,7 @@ func rootHandler(c *gin.Context) {
 		"school": "Institut Teknologi Bandung",
 	})
 
-}
+}            
 
 func main() {
 	dsn := "root:" + ctrl.Password + "@tcp(127.0.0.1:3306)/gosql?charset=utf8mb4&parseTime=True&loc=Local"
