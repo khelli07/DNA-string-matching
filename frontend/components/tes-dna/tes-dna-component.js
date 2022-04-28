@@ -16,8 +16,6 @@ const TesDNAComponent = () => {
     const cariDataPenyakitPengguna = async (e) => {
             // Check if document is finally loaded
             e.preventDefault()
-            console.log(namaPengguna)
-            console.log(namaPenyakit)
             if(!namaPengguna) {
                 alert("Anda belum memasukkan nama pengguna!");
                 return;
@@ -58,9 +56,8 @@ const TesDNAComponent = () => {
                       },
                       data: newDataPenyakit
                     }).then(res => {
-                        console.log(res.data.new_id);
-                        setDataId(res.data.new_id);
-                        fetchData(res.data.new_id - 1);
+                        setDataId(res.data.id);
+                        fetchData(res.data.id - 1);
                         setSubmitPenyakit(true);
                     });
 
@@ -86,7 +83,6 @@ const TesDNAComponent = () => {
             const { data: penyakitData } = await axios.get(
                 `${BACKEND_URL}/diagnosis`,
             )
-            console.log(penyakitData);
             let data = Object.values(penyakitData);
             setDataPenyakitPengguna({
                 date: data[id].date,

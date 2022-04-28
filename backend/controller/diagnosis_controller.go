@@ -61,9 +61,14 @@ func SearchDiagnosisHandler(c *gin.Context) {
 
 		res := db.Find(&diagnoses)
 		if date != "" || name != "" {
-			name_pattern := "%" + name + "%"
-			res = db.Where("input_date = ? OR disease_name = ? OR name like ?",
-				date, name, name_pattern).Find(&diagnoses)
+			if date != "" && name != "" {
+				res = db.Where("input_date = ? AND disease_name = ?", date, name).Find(&diagnoses)
+			} else if date != "" {
+				res = db.Where("input_date = ?", date).Find(&diagnoses)
+			} else {
+				res = db.Where("disease_name = ?", name).Find(&diagnoses)
+
+			}
 		}
 
 		if res.Error != nil {
