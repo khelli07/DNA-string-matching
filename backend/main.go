@@ -22,7 +22,7 @@ func rootHandler(c *gin.Context) {
 }
 
 func main() {
-	dsn := "root:l4pt0p@tcp(127.0.0.1:3306)/gosql?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := "root:" + ctrl.Password + "@tcp(127.0.0.1:3306)/gosql?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
