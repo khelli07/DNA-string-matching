@@ -19,17 +19,6 @@ func PatternIsValid(pattern string) bool {
 	return true
 }
 
-func FindPattern(pattern, text string) bool {
-	re, _ := regex.Compile(pattern)
-	idx := re.FindStringIndex(text)
-
-	if len(idx) == 0 {
-		return false
-	} else {
-		return true
-	}
-}
-
 func processDate(date string) string {
 	mapper := make(map[string]string)
 	mapper["januari"] = "01"
