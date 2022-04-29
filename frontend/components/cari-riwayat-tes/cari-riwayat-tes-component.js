@@ -1,11 +1,9 @@
-import React from "react";
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { BACKEND_URL } from "../../constant";
 import axios from "axios";
 
 const CariRiwayatTesComponent = () => {
   const [inputPengguna, setInputPengguna] = useState("");
-  const [count, setCount] = useState(0);
   const [submitPenyakit, setSubmitPenyakit] = useState(false);
   const [dataPenyakitPengguna, setDataPenyakitPengguna] = useState([]);
 
@@ -23,18 +21,22 @@ const CariRiwayatTesComponent = () => {
   };
 
   async function fetchData() {
-    const { data: penyakitData } = await axios.post(
+    const {} = await axios.post(
       `${BACKEND_URL}/diagnosis/search`,
       {
         query: inputPengguna,
       }
-    );
-    setDataPenyakitPengguna(penyakitData);
-    console.log(dataPenyakitPengguna);
+    ).then(res => {
+      console.log(res);
+      let data = Object.values(res.data);
+      setDataPenyakitPengguna(data);
+    })
   }
 
   React.useEffect(() => {
-    fetchData();
+    if(inputPengguna !== "") {
+      fetchData();
+    }
   }, []);
 
   return (
@@ -50,7 +52,7 @@ const CariRiwayatTesComponent = () => {
       >
         <div class="d-flex justify-content-center align-items-center h-100">
           <div class="text-white">
-            <h1 class="mb-3">Tes DNA</h1>
+            <h1 class="mb-3">Riwayat Tes DNA</h1>
             <form class="align-items-left justify-content-left">
               <div style={{ marginTop: "5vh" }}>
                 <label for="formFile" class="form-label">
@@ -95,7 +97,7 @@ const CariRiwayatTesComponent = () => {
               dataPenyakitPengguna.map((data) => {
                 return (
                   <div>
-                    <p hidden={!submitPenyakit}>{data}</p>
+                    <p hidden={!submitPenyakit}>{data.date} - {data.name} - {data.disease} - {data.result? "True" : "False"} - {data.percentage}%</p>
                   </div>
                 );
               })}
