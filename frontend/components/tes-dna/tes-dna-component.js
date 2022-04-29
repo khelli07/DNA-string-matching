@@ -9,13 +9,15 @@ const TesDNAComponent = () => {
     const [submitPenyakit, setSubmitPenyakit] = useState(false);
     const [dataPenyakitPengguna, setDataPenyakitPengguna] = useState([{date: "a", name: "a", disease: "a", result: "a", percentage: "a"}]);
     const [dataId, setDataId] = useState(-1);
+    const [tipePencarian, setTipePencarian] = useState(0);
 
     const [hasilRead, setHasilRead] = useState("");
     const [file, setFile] = useState("");
 
     const cariDataPenyakitPengguna = async (e) => {
             // Check if document is finally loaded
-            e.preventDefault()
+            e.preventDefault();
+            console.log(document.getElementById("algoritmaPencarian").value);
             if(!namaPengguna) {
                 alert("Anda belum memasukkan nama pengguna!");
                 return;
@@ -46,8 +48,8 @@ const TesDNAComponent = () => {
                         name: namaPengguna,   
                         sequence: hasil,
                         disease: namaPenyakit,
+                        algo_index: parseInt(document.getElementById("algoritmaPencarian").value),
                     }
-                    
                     const attempt = await axios({
                       method: "post",
                       url: `${BACKEND_URL}/diagnosis/new`,
@@ -56,13 +58,15 @@ const TesDNAComponent = () => {
                       },
                       data: newDataPenyakit
                     }).then(res => {
+                        console.log(res);
                         setDataId(res.data.id);
                         fetchData(res.data.id - 1);
                         setSubmitPenyakit(true);
                     });
 
                   }catch(err) {
-                    alert(err.toString());
+                    console.log(err);
+                    alert(err.response.data.error);
                   };
                 };
                 reader.readAsText(temp);
@@ -84,6 +88,7 @@ const TesDNAComponent = () => {
                 `${BACKEND_URL}/diagnosis`,
             )
             let data = Object.values(penyakitData);
+            console.log(data);
             setDataPenyakitPengguna({
                 date: data[id].date,
                 name: data[id].name,
@@ -120,11 +125,21 @@ const TesDNAComponent = () => {
                     <label for="formFile" class="form-label">Masukkan Nama Penyakit</label>
                     <input onChange={(e) => setNamaPenyakit(e.target.value)} class="form-control" id="namaPenyakit" type="text" placeholder="Masukkan Nama Penyakit" aria-label="default input example"></input>
                     </div>
+                    <label for="formFile" class="form-label" style={{marginTop:"3vh"}}>Pilih algoritma pencarian</label>
+                    <div class="input-group mb-3">
+                        <select class="custom-select" id="algoritmaPencarian">
+                            <option selected>Pilih algoritma pencarian</option>
+                            <option onClick={() => setTipePencarian(1)} value="1">Boyer-Moore Matcher</option>
+                            <option onClick={() => setTipePencarian(2)} value="2">KMP Matcher</option>
+                            <option onClick={() => setTipePencarian(3)} value="3">Brute Force Matching</option>
+                            <option onClick={() => setTipePencarian(4)} value="4">Regex Match</option>
+                        </select>
+                    </div>
                     <button type="button" onClick={cariDataPenyakitPengguna} class="btn btn-dark btn-rounded" style={{borderRadius: "2vh", marginTop: "2vh", backgroundColor: "transparent", color: "white", borderColor: "white"}}>Identifikasi</button>
                 </form>
                 <h3 class="mb-3" hidden={!submitPenyakit} style={{marginTop: "4vh"}}>Hasil: </h3>
                 <hr hidden={!submitPenyakit} style={{backgroundColor: 'white'}}></hr>
-                {dataId !== -1? <p hidden={!submitPenyakit}>{dataPenyakitPengguna.date} - {dataPenyakitPengguna.name} - {dataPenyakitPengguna.disease} - {dataPenyakitPengguna.result? "True" : "False"} - {dataPenyakitPengguna.percentage}</p> : <p></p>}
+                {dataId !== -1? <p hidden={!submitPenyakit}>{dataPenyakitPengguna.date} - {dataPenyakitPengguna.name} - {dataPenyakitPengguna.disease} - {dataPenyakitPengguna.result? "True" : "False"} - {dataPenyakitPengguna.percentage}%</p> : <p></p>}
             </div>
             </div>
         </div>

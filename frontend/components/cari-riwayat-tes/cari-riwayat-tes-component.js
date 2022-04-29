@@ -97,7 +97,7 @@ const CariRiwayatTesComponent = () => {
               dataPenyakitPengguna.map((data) => {
                 return (
                   <div>
-                    <p hidden={!submitPenyakit}>{data.date} - {data.name} - {data.disease} - {data.result? "True" : "False"} - {data.percentage}</p>
+                    <p hidden={!submitPenyakit}>{data.date} - {data.name} - {data.disease} - {data.result? "True" : "False"} - {data.percentage}%</p>
                   </div>
                 );
               })}

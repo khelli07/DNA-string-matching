@@ -118,32 +118,49 @@ func ReadDiagnosisHandler(c *gin.Context) {
 }
 
 func NewDiagnosisHandler(c *gin.Context) {
-	var diagnose mod.Diagnosis
-	db := ConnectToDB()
+	type DiagnoseInput struct {
+		Name         string `json:"name" binding:"required"`
+		DNASequence  string `json:"sequence" binding:"required"`
+		DiseaseName  string `json:"disease" binding:"required"`
+		AlgorithmIdx int    `json:"algo_index" binding:"required"`
+	}
 
+	var userInput DiagnoseInput
+	db := ConnectToDB()
 	if db == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "An error occured! Can't connect to DB"})
 		return
 	}
 
-	err := c.ShouldBindJSON(&diagnose)
+	err := c.ShouldBindJSON(&userInput)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprint(err)})
-	} else if !PatternIsValid(diagnose.DNASequence) {
+	} else if !PatternIsValid(userInput.DNASequence) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Pola tidak valid!"})
 	} else {
-		diagnose.InputDate = time.Now().Format("2006-01-02")
-		//TODO: CHANGE TO FUNCTION, NOT HARDCODED
-		diagnose.Percentage = 0.8
-		diagnose.Result = true
+		var diagnose mod.Diagnosis
+		var disease mod.Disease
+		var exists bool
 
-		res := db.Create(&diagnose)
-		if res.Error != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": res.Error})
+		db.Model(&disease).Select("count(*) > 0").Where("name = ?", userInput.DiseaseName).Find(&exists)
+		if !exists {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Disease not found!"})
 		} else {
-			c.JSON(http.StatusOK, gin.H{
-				"id":      diagnose.ID,
-				"message": "Model created successfully"})
+			db.First(&disease, "name = ?", userInput.DiseaseName)
+			diagnose.Name = userInput.Name
+			diagnose.DNASequence = userInput.DNASequence
+			diagnose.DiseaseName = userInput.DiseaseName
+			diagnose.InputDate = time.Now().Format("2006-01-02")
+			diagnose.Percentage, diagnose.Result = DNAStringMatching(disease.Pattern, userInput.DNASequence, userInput.AlgorithmIdx-1)
+			res := db.Create(&diagnose)
+
+			if res.Error != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": res.Error})
+			} else {
+				c.JSON(http.StatusOK, gin.H{
+					"id":      diagnose.ID,
+					"message": "Model created successfully"})
+			}
 		}
 	}
 
